@@ -1,4 +1,6 @@
 import app from './app.js';
 
 const port = Number(process.env.PORT ?? 3004);
-app.listen(port, () => console.log(`Lab Report Explainer API on http://localhost:${port}`));
+// Local-only by default; set HOST=0.0.0.0 to expose it on your network (the Docker image does).
+const host = process.env.HOST ?? '127.0.0.1';
+app.listen(port, host, () => console.log(`Lab Report Explainer API on http://${host === '0.0.0.0' ? 'localhost' : host}:${port}`));

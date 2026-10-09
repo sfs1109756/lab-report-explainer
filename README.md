@@ -60,6 +60,8 @@ npm run build && npm start       # http://localhost:3004
 docker compose up -d && docker compose exec ollama ollama pull qwen2.5:7b
 ```
 
+The server listens on `127.0.0.1` by default, so only this computer can reach it. Set `HOST=0.0.0.0` in `server/.env` to open it to your network (the Docker image does this for you).
+
 Scanned (image-only) PDFs have no text layer — run OCR first or paste the text.
 
 ## Switching AI provider
