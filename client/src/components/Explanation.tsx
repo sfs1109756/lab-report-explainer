@@ -16,7 +16,14 @@ function renderText(text: string): ReactNode {
   const blocks: ReactNode[] = [];
   let bullets: string[] = [];
   const flush = () => {
-    if (bullets.length) blocks.push(<ul key={blocks.length}>{bullets.map((b, i) => <li key={i}>{inline(b)}</li>)}</ul>);
+    if (bullets.length)
+      blocks.push(
+        <ul key={blocks.length}>
+          {bullets.map((b, i) => (
+            <li key={i}>{inline(b)}</li>
+          ))}
+        </ul>,
+      );
     bullets = [];
   };
   const inline = (s: string) => s.split(/\*\*(.+?)\*\*/g).map((part, i) => (i % 2 ? <strong key={i}>{part}</strong> : part));
@@ -32,7 +39,10 @@ function renderText(text: string): ReactNode {
       continue;
     }
     flush();
-    const heading = line.replace(/^#+\s*/, '').replace(/^\*\*(.*)\*\*$/, '$1').replace(/:$/, '');
+    const heading = line
+      .replace(/^#+\s*/, '')
+      .replace(/^\*\*(.*)\*\*$/, '$1')
+      .replace(/:$/, '');
     if (line.length < 60 && !/[.!?]$/.test(line)) blocks.push(<h3 key={blocks.length}>{heading}</h3>);
     else blocks.push(<p key={blocks.length}>{inline(line)}</p>);
   }
@@ -90,7 +100,9 @@ export function Explanation({ view, aiReady }: { view: View; aiReady: boolean })
         <div className="row no-print">
           <select value={language} onChange={(e) => setLanguage(e.target.value)} aria-label="Language">
             {Object.entries(LANGS).map(([k, v]) => (
-              <option key={k} value={k}>{v}</option>
+              <option key={k} value={k}>
+                {v}
+              </option>
             ))}
           </select>
           <button onClick={explain} disabled={busy || !aiReady}>
@@ -100,8 +112,17 @@ export function Explanation({ view, aiReady }: { view: View; aiReady: boolean })
         </div>
       </div>
       {!aiReady && <p className="small muted">The summary needs an AI model (local Ollama by default). The flags above work without it.</p>}
-      {busy && !text && <p className="small muted"><span className="spinner" />Writing your summary… the first words can take a few seconds on a local model.</p>}
-      {error && <div className="error" style={{ marginTop: 10 }}>{error}</div>}
+      {busy && !text && (
+        <p className="small muted">
+          <span className="spinner" />
+          Writing your summary… the first words can take a few seconds on a local model.
+        </p>
+      )}
+      {error && (
+        <div className="error" style={{ marginTop: 10 }}>
+          {error}
+        </div>
+      )}
       {text && (
         <div className="ai-text" dir={rtl ? 'rtl' : 'ltr'}>
           {renderText(text)}
@@ -117,7 +138,12 @@ export function Explanation({ view, aiReady }: { view: View; aiReady: boolean })
             </div>
           ))}
           <form onSubmit={ask} className="row" style={{ flexWrap: 'nowrap' }}>
-            <input value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Ask a follow-up, e.g. What foods help with low vitamin D?" disabled={asking} />
+            <input
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              placeholder="Ask a follow-up, e.g. What foods help with low vitamin D?"
+              disabled={asking}
+            />
             <button disabled={asking || !question.trim()}>{asking ? <span className="spinner" /> : 'Ask'}</button>
           </form>
         </div>

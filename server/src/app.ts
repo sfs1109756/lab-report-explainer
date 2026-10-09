@@ -35,7 +35,8 @@ app.post(
     } catch (err) {
       throw new HttpError(400, (err as Error).message);
     }
-    if (!text.trim()) throw new HttpError(400, 'No text found in this file. Scanned image PDFs need OCR first — try pasting the text instead.');
+    if (!text.trim())
+      throw new HttpError(400, 'No text found in this file. Scanned image PDFs need OCR first — try pasting the text instead.');
     res.json({ text, parsed: parseReport(text, sexOf(req.body?.sex)) });
   }),
 );

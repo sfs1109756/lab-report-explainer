@@ -8,7 +8,8 @@ import { SAMPLE_PREVIOUS_REPORT, SAMPLE_REPORT } from './sample.js';
 let api = '';
 let lastPrompt = '';
 const servers: http.Server[] = [];
-const listen = (s: http.Server) => new Promise<string>((r) => s.listen(0, () => r(`http://127.0.0.1:${(s.address() as AddressInfo).port}`)));
+const listen = (s: http.Server) =>
+  new Promise<string>((r) => s.listen(0, () => r(`http://127.0.0.1:${(s.address() as AddressInfo).port}`)));
 
 const fakeOllama = http.createServer((req, res) => {
   let raw = '';
@@ -31,7 +32,8 @@ before(async () => {
 });
 after(() => servers.forEach((s) => s.close()));
 
-const post = (p: string, body: unknown) => fetch(`${api}${p}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+const post = (p: string, body: unknown) =>
+  fetch(`${api}${p}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
 test('parse flags values and finds the report date', async () => {
   const { parsed } = await (await post('/api/parse', { text: SAMPLE_REPORT })).json();
@@ -60,7 +62,10 @@ test('explanation streams and includes earlier values in the prompt', async () =
   const c = await (await post('/api/compare', { current: SAMPLE_REPORT, previous: SAMPLE_PREVIOUS_REPORT })).json();
   const view = { ...c.current, results: c.results, previousDate: c.previous.reportDate };
   const res = await post('/api/explain', { parsed: view, language: 'hi' });
-  const events = (await res.text()).trim().split('\n').map((l) => JSON.parse(l));
+  const events = (await res.text())
+    .trim()
+    .split('\n')
+    .map((l) => JSON.parse(l));
   assert.equal(events.at(-1).text, 'Overview\nMostly fine.');
   assert.match(lastPrompt, /Hindi/);
   assert.match(lastPrompt, /HbA1c: 6\.1 % .*previously 6\.4 on 2026-04-08 \(improved\)/);

@@ -87,15 +87,19 @@ export default function App() {
           <p>Upload a blood test report to see which values are out of range — and what they mean, in plain words.</p>
         </div>
         <div className="row no-print">
-          <button className="ghost" onClick={() => loadSample(false)} disabled={busy}>Try a sample report</button>
-          <button className="ghost" onClick={() => loadSample(true)} disabled={busy}>Sample comparison</button>
+          <button className="ghost" onClick={() => loadSample(false)} disabled={busy}>
+            Try a sample report
+          </button>
+          <button className="ghost" onClick={() => loadSample(true)} disabled={busy}>
+            Sample comparison
+          </button>
           <AiStatus health={health} />
         </div>
       </header>
 
       <div className="disclaimer">
-        <strong>For understanding only — not medical advice.</strong> Reference ranges vary between labs. Always discuss your results with
-        a qualified doctor. In an emergency, contact a doctor or hospital immediately.
+        <strong>For understanding only — not medical advice.</strong> Reference ranges vary between labs. Always discuss your results with a
+        qualified doctor. In an emergency, contact a doctor or hospital immediately.
       </div>
 
       <div className="panel no-print">
@@ -139,20 +143,42 @@ export default function App() {
           </button>
           <span className="small muted">Reading and flagging values happens on your machine without AI.</span>
         </div>
-        {error && <div className="error" style={{ marginTop: 10 }}>{error}</div>}
+        {error && (
+          <div className="error" style={{ marginTop: 10 }}>
+            {error}
+          </div>
+        )}
       </div>
 
       {view && s && (
         <div ref={resultsRef} className="stack" style={{ marginTop: 20 }}>
           <div className={`summary-cards ${view.comparison ? 'with-trend' : ''}`}>
-            <div className="sc"><div className="sc-n">{s.total}</div><div className="sc-l">tests found</div></div>
-            <div className="sc normal"><div className="sc-n">{s.normal}</div><div className="sc-l">in range</div></div>
-            <div className="sc high"><div className="sc-n">{s.high}</div><div className="sc-l">high</div></div>
-            <div className="sc low"><div className="sc-n">{s.low}</div><div className="sc-l">low</div></div>
+            <div className="sc">
+              <div className="sc-n">{s.total}</div>
+              <div className="sc-l">tests found</div>
+            </div>
+            <div className="sc normal">
+              <div className="sc-n">{s.normal}</div>
+              <div className="sc-l">in range</div>
+            </div>
+            <div className="sc high">
+              <div className="sc-n">{s.high}</div>
+              <div className="sc-l">high</div>
+            </div>
+            <div className="sc low">
+              <div className="sc-n">{s.low}</div>
+              <div className="sc-l">low</div>
+            </div>
             {view.comparison && (
               <>
-                <div className="sc normal"><div className="sc-n">↑ {view.comparison.improved}</div><div className="sc-l">improved</div></div>
-                <div className="sc high"><div className="sc-n">↓ {view.comparison.worsened}</div><div className="sc-l">got worse</div></div>
+                <div className="sc normal">
+                  <div className="sc-n">↑ {view.comparison.improved}</div>
+                  <div className="sc-l">improved</div>
+                </div>
+                <div className="sc high">
+                  <div className="sc-n">↓ {view.comparison.worsened}</div>
+                  <div className="sc-l">got worse</div>
+                </div>
               </>
             )}
             <div className="sc meta">
@@ -161,7 +187,9 @@ export default function App() {
                 {view.reportDate && <div>Report: {prettyDate(view.reportDate)}</div>}
                 {view.previousDate && <div>Compared with: {prettyDate(view.previousDate)}</div>}
               </div>
-              <button className="ghost small no-print" onClick={() => window.print()}>Print / save PDF</button>
+              <button className="ghost small no-print" onClick={() => window.print()}>
+                Print / save PDF
+              </button>
             </div>
           </div>
           <Explanation view={view} aiReady={Boolean(health?.ok)} />

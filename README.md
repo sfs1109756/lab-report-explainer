@@ -15,9 +15,9 @@ Upload a blood test report (PDF or text). See every value flagged **low / normal
 - **Parser built for real Indian lab layouts:** `Haemoglobin 12.4 L g/dL 13.0 - 17.0`, `Platelet Count 2.45 lakhs/cumm`, `7,850 /cumm`, `1,50,000`, `Desirable <200, Borderline 200-239`, `>40`, `mm/1st hr`, dates/times in headers…
 - **Compare with an earlier report:** see each test's previous value, % change and whether it **improved** or **got worse** — judged against the range, so moving into range counts as better and drifting within it doesn't. Filter to just the tests that changed; the summary leads with what changed.
 - **61 common tests** across blood count, sugar, lipids, kidney, electrolytes, liver, thyroid, vitamins and iron (including lipid ratios, non-HDL, eGFR and estimated average glucose) — each with a plain explanation of what it measures and what a low/high value can be associated with.
-- **Prefers the range printed on your report**; falls back to typical adult ranges (sex-specific where it matters) and labels them as *typical*.
+- **Prefers the range printed on your report**; falls back to typical adult ranges (sex-specific where it matters) and labels them as _typical_.
 - **Unit normalisation:** counts in /µL or lakhs are converted so values and ranges compare correctly.
-- **Unknown tests aren't lost:** any line with a name, value and printed range is kept under *Other*.
+- **Unknown tests aren't lost:** any line with a name, value and printed range is kept under _Other_.
 - **Visual range bars**, out-of-range filter, click a row for details, print / save as PDF.
 - **AI summary with guardrails:** no diagnoses, no medicines or doses, cautious wording, grouped findings, questions to ask your doctor, and a nudge to see a doctor soon when values are far outside range.
 - **Follow-up questions** about your results, in your chosen language. Summaries and answers stream as they're written.
@@ -68,14 +68,14 @@ Set `LLM_PROVIDER` in `server/.env`: `ollama` (default), `openai` (any OpenAI-co
 
 ## API
 
-| Method | Path | Notes |
-|---|---|---|
-| `POST` | `/api/upload` | `multipart file` (+ `sex`) → `{ text, parsed }` |
-| `POST` | `/api/parse` | `{ text, sex? }` → `{ parsed }` (no AI) |
-| `POST` | `/api/compare` | `{ current, previous, sex? }` → per-test previous value, change and trend (no AI) |
-| `POST` | `/api/explain` | `{ parsed, language }` → NDJSON stream of the summary |
-| `POST` | `/api/ask` | `{ parsed, question, language }` → NDJSON stream of the answer |
-| `GET` | `/api/tests` · `/api/sample` · `/api/languages` | Catalogue, demo reports, languages |
+| Method | Path                                            | Notes                                                                             |
+| ------ | ----------------------------------------------- | --------------------------------------------------------------------------------- |
+| `POST` | `/api/upload`                                   | `multipart file` (+ `sex`) → `{ text, parsed }`                                   |
+| `POST` | `/api/parse`                                    | `{ text, sex? }` → `{ parsed }` (no AI)                                           |
+| `POST` | `/api/compare`                                  | `{ current, previous, sex? }` → per-test previous value, change and trend (no AI) |
+| `POST` | `/api/explain`                                  | `{ parsed, language }` → NDJSON stream of the summary                             |
+| `POST` | `/api/ask`                                      | `{ parsed, question, language }` → NDJSON stream of the answer                    |
+| `GET`  | `/api/tests` · `/api/sample` · `/api/languages` | Catalogue, demo reports, languages                                                |
 
 ## Extending the catalogue
 

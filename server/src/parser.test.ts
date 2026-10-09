@@ -3,8 +3,7 @@ import { test } from 'node:test';
 import { parseReport } from './parser.js';
 import { SAMPLE_REPORT } from './sample.js';
 
-const byKey = (text: string, sex?: 'male' | 'female') =>
-  Object.fromEntries(parseReport(text, sex).results.map((r) => [r.key, r]));
+const byKey = (text: string, sex?: 'male' | 'female') => Object.fromEntries(parseReport(text, sex).results.map((r) => [r.key, r]));
 
 test('parses the full sample report', () => {
   const out = parseReport(SAMPLE_REPORT);

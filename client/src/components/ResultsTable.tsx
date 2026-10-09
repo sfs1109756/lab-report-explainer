@@ -15,7 +15,10 @@ function Change({ r }: { r: ParsedResult }) {
   if (r.changePct === 0) return <span className="trend stable small">same</span>;
   const t = TREND[r.trend];
   return (
-    <span className={`trend ${r.trend}`} title={`${t.label}: was ${r.previous}${r.changePct != null ? ` (${r.changePct > 0 ? '+' : ''}${r.changePct}%)` : ''}`}>
+    <span
+      className={`trend ${r.trend}`}
+      title={`${t.label}: was ${r.previous}${r.changePct != null ? ` (${r.changePct > 0 ? '+' : ''}${r.changePct}%)` : ''}`}
+    >
       <span className="was">{r.previous}</span> {t.icon}
     </span>
   );
@@ -46,7 +49,9 @@ export function ResultsTable({ view }: { view: View }) {
         </div>
       </div>
 
-      {rows.length === 0 && <p className="muted">{filter === 'changed' ? 'Nothing changed meaningfully.' : 'Everything is within range. 🎉'}</p>}
+      {rows.length === 0 && (
+        <p className="muted">{filter === 'changed' ? 'Nothing changed meaningfully.' : 'Everything is within range. 🎉'}</p>
+      )}
 
       <div className="scroll-x">
         <table className="data results">
@@ -78,10 +83,16 @@ export function ResultsTable({ view }: { view: View }) {
                         </td>
                         <td className="range small">
                           {formatRange(r)}
-                          {r.rangeSource === 'typical' && <span className="typical" title="No range was printed on the report, so a typical adult range was used.">typical</span>}
+                          {r.rangeSource === 'typical' && (
+                            <span className="typical" title="No range was printed on the report, so a typical adult range was used.">
+                              typical
+                            </span>
+                          )}
                         </td>
                         <td>
-                          <span className={`badge ${r.status}`}>{r.status === 'normal' ? 'Normal' : r.status === 'low' ? 'Low' : 'High'}</span>
+                          <span className={`badge ${r.status}`}>
+                            {r.status === 'normal' ? 'Normal' : r.status === 'low' ? 'Low' : 'High'}
+                          </span>
                         </td>
                       </tr>
                       {open === r.key && (
@@ -90,11 +101,20 @@ export function ResultsTable({ view }: { view: View }) {
                             {r.previous != null && (
                               <p>
                                 <strong>Since {view.previousDate ?? 'the earlier report'}:</strong> {r.previous} → {r.value} {r.unit}
-                                {r.changePct != null && ` (${r.changePct > 0 ? '+' : ''}${r.changePct}%)`} — {TREND[r.trend ?? 'stable'].label.toLowerCase()}.
+                                {r.changePct != null && ` (${r.changePct > 0 ? '+' : ''}${r.changePct}%)`} —{' '}
+                                {TREND[r.trend ?? 'stable'].label.toLowerCase()}.
                               </p>
                             )}
-                            {r.about && <p><strong>What it measures:</strong> {r.about}</p>}
-                            {r.meaning && <p><strong>What a {r.status} value can mean:</strong> {r.meaning}</p>}
+                            {r.about && (
+                              <p>
+                                <strong>What it measures:</strong> {r.about}
+                              </p>
+                            )}
+                            {r.meaning && (
+                              <p>
+                                <strong>What a {r.status} value can mean:</strong> {r.meaning}
+                              </p>
+                            )}
                             <p className="small muted">From your report: “{r.line}”</p>
                           </td>
                         </tr>

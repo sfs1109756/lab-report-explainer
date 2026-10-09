@@ -49,7 +49,10 @@ function escapeRegex(s: string) {
 
 /** Alias words may be separated by spaces, hyphens, commas, colons or brackets in real reports. */
 function aliasRegex(alias: string): RegExp {
-  const tokens = alias.split(/[\s\-,:()/]+/).filter(Boolean).map(escapeRegex);
+  const tokens = alias
+    .split(/[\s\-,:()/]+/)
+    .filter(Boolean)
+    .map(escapeRegex);
   return new RegExp(`(?<![a-z0-9])${tokens.join('[\\s\\-,:()/]*')}(?![a-z0-9])`, 'i');
 }
 
@@ -127,7 +130,8 @@ function classify(value: number, range: Range): { status: Status; deviationPct: 
   return { status: 'normal', deviationPct: 0 };
 }
 
-const SKIP_OTHER = /\b(date|age|sex|gender|id|no\.?|number|phone|mobile|ref|reg|sample|collected|received|reported|printed|time|page|barcode|lab|patient|dr\.?|doctor|uhid|bill|pin|years?|yrs)\b/i;
+const SKIP_OTHER =
+  /\b(date|age|sex|gender|id|no\.?|number|phone|mobile|ref|reg|sample|collected|received|reported|printed|time|page|barcode|lab|patient|dr\.?|doctor|uhid|bill|pin|years?|yrs)\b/i;
 
 export function detectPatient(text: string): ParseOutput['patient'] {
   const sexMatch = text.match(/(?:sex|gender)\s*[:/\-]?\s*(male|female|m|f)\b/i) ?? text.match(/\b(male|female)\b/i);
@@ -143,7 +147,8 @@ export function detectPatient(text: string): ParseOutput['patient'] {
 /** Finds the report or sample date ("Reported : 09-10-2026", "Collected on 9 Oct 2026"). */
 export function detectReportDate(text: string): string | null {
   const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-  const labelled = /(reported|report date|collected|collection|sample date|registered|received|date)\s*(?:on|at|date)?\s*[:\-]?\s*([^\n]{6,30})/gi;
+  const labelled =
+    /(reported|report date|collected|collection|sample date|registered|received|date)\s*(?:on|at|date)?\s*[:\-]?\s*([^\n]{6,30})/gi;
   for (const m of text.matchAll(labelled)) {
     const v = m[2];
     let d = v.match(/(\d{4})-(\d{2})-(\d{2})/); // ISO first, so 2026-01-15 isn't read as day-first
@@ -153,7 +158,8 @@ export function detectReportDate(text: string): string | null {
       const year = d[3].length === 2 ? 2000 + Number(d[3]) : Number(d[3]);
       const month = Number(d[2]);
       const day = Number(d[1]);
-      if (month >= 1 && month <= 12 && day >= 1 && day <= 31) return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      if (month >= 1 && month <= 12 && day >= 1 && day <= 31)
+        return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     }
     d = v.match(/(\d{1,2})[\s-]*([a-z]{3})[a-z]*[\s,-]*(\d{4})/i);
     if (d && MONTHS.includes(d[2].toLowerCase())) {
@@ -228,7 +234,10 @@ export function parseReport(text: string, sexOverride?: Sex | null): ParseOutput
     const printed = ranges[0]?.range;
     const range = cleanRange(
       printed
-        ? { low: printed.low !== undefined ? round3(norm(printed.low)) : undefined, high: printed.high !== undefined ? round3(norm(printed.high)) : undefined }
+        ? {
+            low: printed.low !== undefined ? round3(norm(printed.low)) : undefined,
+            high: printed.high !== undefined ? round3(norm(printed.high)) : undefined,
+          }
         : pickRange(test, patient.sex),
     );
     const { status, deviationPct } = classify(value, range);

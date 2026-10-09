@@ -40,7 +40,8 @@ export function compareReports(current: ParseOutput, previous: ParseOutput): Com
     const before = outside(p.value, r.range);
     const after = outside(r.value, r.range);
     let trend: Trend;
-    if (before === 0 && after === 0) trend = 'stable'; // moving around inside the range is fine
+    if (before === 0 && after === 0)
+      trend = 'stable'; // moving around inside the range is fine
     else if (after < before - 0.005) trend = 'improved';
     else if (after > before + 0.005) trend = 'worsened';
     else trend = 'stable';
