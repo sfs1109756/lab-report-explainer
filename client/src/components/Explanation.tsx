@@ -1,6 +1,6 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
-import { postJSON } from '../api';
-import type { ParseOutput } from '../types';
+import { streamPost } from '../api';
+import type { View } from '../types';
 
 const LANGS: Record<string, string> = {
   en: 'English',
@@ -40,7 +40,7 @@ function renderText(text: string): ReactNode {
   return blocks;
 }
 
-export function Explanation({ parsed, aiReady }: { parsed: ParseOutput; aiReady: boolean }) {
+export function Explanation({ view, aiReady }: { view: View; aiReady: boolean }) {
   const [language, setLanguage] = useState('en');
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
@@ -54,8 +54,9 @@ export function Explanation({ parsed, aiReady }: { parsed: ParseOutput; aiReady:
     setBusy(true);
     setError('');
     try {
-      const res = await postJSON<{ explanation: string }>('/api/explain', { parsed, language });
-      setText(res.explanation);
+      setText('');
+      const done = await streamPost('/api/explain', { parsed: view, language }, setText);
+      setText(done.text);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -70,9 +71,11 @@ export function Explanation({ parsed, aiReady }: { parsed: ParseOutput; aiReady:
     setAsking(true);
     setError('');
     try {
-      const res = await postJSON<{ answer: string }>('/api/ask', { parsed, question: q, language });
-      setQa((list) => [...list, { q, a: res.answer }]);
+      setQa((list) => [...list, { q, a: '' }]);
       setQuestion('');
+      const update = (a: string) => setQa((list) => [...list.slice(0, -1), { q, a }]);
+      const done = await streamPost('/api/ask', { parsed: view, question: q, language }, update);
+      update(done.text);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -97,7 +100,7 @@ export function Explanation({ parsed, aiReady }: { parsed: ParseOutput; aiReady:
         </div>
       </div>
       {!aiReady && <p className="small muted">The summary needs an AI model (local Ollama by default). The flags above work without it.</p>}
-      {busy && <p className="small muted">Writing your summary… local models can take 20–60 seconds.</p>}
+      {busy && !text && <p className="small muted"><span className="spinner" />Writing your summary… the first words can take a few seconds on a local model.</p>}
       {error && <div className="error" style={{ marginTop: 10 }}>{error}</div>}
       {text && (
         <div className="ai-text" dir={rtl ? 'rtl' : 'ltr'}>

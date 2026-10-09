@@ -1,4 +1,4 @@
-import { chat } from './llm.js';
+import { chatStream } from './llm.js';
 import type { ParseOutput } from './parser.js';
 
 export const LANGUAGES = {
@@ -20,6 +20,7 @@ Strict rules:
 - Group related findings (e.g. several anaemia-related markers, several sugar markers) into one point instead of repeating.
 - Mention normal results only briefly as reassurance.
 - If a value is far outside its range (deviation 50% or more), say clearly it should be reviewed by a doctor soon.
+- If earlier values are given, start "Worth discussing" with what got better and what got worse since the last report.
 - Keep it under 300 words. Short sentences. No jargon without a plain explanation.
 
 Format exactly with these headings (translate the headings too if writing in another language):
@@ -38,16 +39,25 @@ Questions you could ask your doctor
 General lifestyle notes
 - <2-3 general, safe habits linked to the findings, e.g. diet, activity, sunlight; no medicines>`;
 
-export async function explainResults(parsed: ParseOutput, language: Language = 'en'): Promise<string> {
-  const lines = parsed.results.map(
-    (r) =>
-      `- ${r.name}: ${r.value} ${r.unit} (range ${r.range.low ?? '–'} to ${r.range.high ?? '–'}, ${r.rangeSource} range) → ${r.status.toUpperCase()}${
-        r.status !== 'normal' ? `, ${r.deviationPct}% outside` : ''
-      }`,
-  );
+type Result = ParseOutput['results'][number] & { previous?: number | null; trend?: string };
+
+function resultLine(r: Result, previousDate?: string | null): string {
+  const prior = r.previous != null ? `; previously ${r.previous}${previousDate ? ` on ${previousDate}` : ''} (${r.trend})` : '';
+  return `- ${r.name}: ${r.value} ${r.unit} (range ${r.range.low ?? '–'} to ${r.range.high ?? '–'}, ${r.rangeSource} range) → ${r.status.toUpperCase()}${
+    r.status !== 'normal' ? `, ${r.deviationPct}% outside` : ''
+  }${prior}`;
+}
+
+export async function explainResults(
+  parsed: ParseOutput & { previousDate?: string | null },
+  language: Language = 'en',
+  onToken: (t: string) => void = () => {},
+  signal?: AbortSignal,
+): Promise<string> {
+  const lines = (parsed.results as Result[]).slice(0, 150).map((r) => resultLine(r, parsed.previousDate));
   const who = [parsed.patient.age ? `${parsed.patient.age} years old` : null, parsed.patient.sex].filter(Boolean).join(', ');
 
-  const text = await chat(
+  const text = await chatStream(
     [
       { role: 'system', content: SYSTEM },
       {
@@ -58,15 +68,22 @@ Results:
 ${lines.join('\n')}`,
       },
     ],
-    { temperature: 0.3, maxTokens: 1200 },
+    onToken,
+    { temperature: 0.3, maxTokens: 1200, signal },
   );
   return text.trim();
 }
 
 /** Answers a follow-up question about the same results. */
-export async function answerQuestion(parsed: ParseOutput, question: string, language: Language = 'en'): Promise<string> {
-  const lines = parsed.results.map((r) => `${r.name}: ${r.value} ${r.unit} [${r.range.low ?? '–'}–${r.range.high ?? '–'}] ${r.status}`);
-  const text = await chat(
+export async function answerQuestion(
+  parsed: ParseOutput & { previousDate?: string | null },
+  question: string,
+  language: Language = 'en',
+  onToken: (t: string) => void = () => {},
+  signal?: AbortSignal,
+): Promise<string> {
+  const lines = (parsed.results as Result[]).slice(0, 150).map((r) => resultLine(r, parsed.previousDate).slice(2));
+  const text = await chatStream(
     [
       {
         role: 'system',
@@ -77,7 +94,8 @@ Answer in ${LANGUAGES[language] ?? 'English'} in under 150 words.`,
       },
       { role: 'user', content: `My results:\n${lines.join('\n')}\n\nMy question: ${question}` },
     ],
-    { temperature: 0.3, maxTokens: 500 },
+    onToken,
+    { temperature: 0.3, maxTokens: 500, signal },
   );
   return text.trim();
 }

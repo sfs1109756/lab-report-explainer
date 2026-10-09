@@ -238,6 +238,15 @@ export const TESTS: TestDef[] = [
     high: '5.7–6.4% is commonly labelled the prediabetes range, and 6.5%+ the diabetes range.',
   },
 
+  {
+    key: 'eag',
+    name: 'Estimated average glucose',
+    category: 'Blood sugar',
+    unit: 'mg/dL',
+    aliases: ['estimated average glucose', 'average blood glucose', 'mean blood glucose', 'eag'],
+    range: { low: 70, high: 117 },
+    about: 'Your HbA1c converted into an average blood sugar number.',
+  },
   // ---------------- Lipids ----------------
   {
     key: 'cholesterol',
@@ -289,6 +298,34 @@ export const TESTS: TestDef[] = [
     about: 'A cholesterol carrier that also transports triglycerides.',
   },
 
+  {
+    key: 'non_hdl',
+    name: 'Non-HDL cholesterol',
+    category: 'Lipids',
+    unit: 'mg/dL',
+    aliases: ['non hdl cholesterol', 'non-hdl cholesterol', 'non hdl c', 'non-hdl'],
+    range: { high: 130 },
+    about: 'All the "bad" cholesterol types together (total minus HDL).',
+    high: 'A higher value is associated with greater heart-disease risk.',
+  },
+  {
+    key: 'chol_hdl_ratio',
+    name: 'Cholesterol / HDL ratio',
+    category: 'Lipids',
+    unit: 'ratio',
+    aliases: ['total cholesterol hdl ratio', 'cholesterol hdl ratio', 'chol hdl ratio', 'tc hdl ratio', 'tc/hdl'],
+    range: { high: 5 },
+    about: 'Total cholesterol divided by HDL. Lower is better.',
+  },
+  {
+    key: 'ldl_hdl_ratio',
+    name: 'LDL / HDL ratio',
+    category: 'Lipids',
+    unit: 'ratio',
+    aliases: ['ldl hdl ratio', 'ldl/hdl'],
+    range: { high: 3.5 },
+    about: 'LDL divided by HDL. Lower is better.',
+  },
   // ---------------- Kidney ----------------
   {
     key: 'creatinine',
@@ -328,6 +365,34 @@ export const TESTS: TestDef[] = [
     range: { male: { low: 3.5, high: 7.2 }, female: { low: 2.6, high: 6 } },
     about: 'A waste product from breaking down purines (found in some foods).',
     high: 'High levels can lead to gout or kidney stones.',
+  },
+  {
+    key: 'egfr',
+    name: 'eGFR',
+    category: 'Kidney',
+    unit: 'mL/min/1.73m²',
+    aliases: ['estimated glomerular filtration rate', 'egfr', 'e gfr', 'gfr'],
+    range: { low: 90 },
+    about: 'An estimate of how well your kidneys filter blood, calculated from creatinine, age and sex.',
+    low: 'Lower values can mean reduced kidney function; 60–89 is often mildly reduced, below 60 worth closer review.',
+  },
+  {
+    key: 'phosphorus',
+    name: 'Phosphorus',
+    category: 'Electrolytes',
+    unit: 'mg/dL',
+    aliases: ['serum phosphorus', 'inorganic phosphorus', 'phosphorus', 'phosphate'],
+    range: { low: 2.5, high: 4.5 },
+    about: 'A mineral that works with calcium for bones and energy.',
+  },
+  {
+    key: 'magnesium',
+    name: 'Magnesium',
+    category: 'Electrolytes',
+    unit: 'mg/dL',
+    aliases: ['serum magnesium', 'magnesium', 'mg++'],
+    range: { low: 1.7, high: 2.2 },
+    about: 'A mineral for muscles, nerves and heart rhythm.',
   },
   {
     key: 'sodium',
@@ -452,6 +517,24 @@ export const TESTS: TestDef[] = [
     about: 'The main blood protein, made by the liver.',
   },
 
+  {
+    key: 'globulin',
+    name: 'Globulin',
+    category: 'Liver',
+    unit: 'g/dL',
+    aliases: ['serum globulin', 'globulin'],
+    range: { low: 2, high: 3.5 },
+    about: 'A group of blood proteins that includes antibodies.',
+  },
+  {
+    key: 'ag_ratio',
+    name: 'A/G ratio',
+    category: 'Liver',
+    unit: 'ratio',
+    aliases: ['albumin globulin ratio', 'a g ratio', 'a/g ratio', 'a:g ratio'],
+    range: { low: 1, high: 2.1 },
+    about: 'Albumin divided by globulin.',
+  },
   // ---------------- Thyroid ----------------
   {
     key: 'tsh',

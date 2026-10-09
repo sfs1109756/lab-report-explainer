@@ -61,3 +61,31 @@ Vitamin B12                    182   L     pg/mL          200 - 900
 Serum Ferritin                 24    L     ng/mL          30 - 400
 
 *** End of Report ***`;
+
+/** The same fictional patient six months earlier — for trying the comparison view. */
+export const SAMPLE_PREVIOUS_REPORT = (() => {
+  const changes: [string, string][] = [
+    ['Haemoglobin', '12.0'],
+    ['Fasting Blood Sugar (FBS)', '121'],
+    ['Post Prandial Blood Sugar', '182'],
+    ['HbA1c (Glycated Haemoglobin)', '6.4'],
+    ['Total Cholesterol', '236'],
+    ['Triglycerides', '210'],
+    ['LDL Cholesterol', '138'],
+    ['SGPT (ALT)', '72'],
+    ['SGOT (AST)', '49'],
+    ['TSH (Ultrasensitive)', '4.1'],
+    ['25-OH Vitamin D', '11.0'],
+    ['Vitamin B12', '214'],
+    ['Serum Ferritin', '19'],
+  ];
+  let text = SAMPLE_REPORT.replace(/09-10-2026/g, '08-04-2026').replace('DD-2026-10421', 'DD-2026-04117');
+  for (const [name, value] of changes) {
+    const line = text.split('\n').find((l) => l.startsWith(name));
+    if (!line) continue;
+    const rest = line.slice(name.length);
+    const updated = name + rest.replace(/^(\s+)[\d.,]+(\s+[LH](?=\s))?/, (_m, sp: string) => `${sp}${value}`.padEnd(sp.length + 6));
+    text = text.replace(line, updated);
+  }
+  return text;
+})();

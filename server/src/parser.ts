@@ -32,6 +32,8 @@ export interface ParsedResult {
 
 export interface ParseOutput {
   patient: { sex: Sex | null; age: number | null };
+  /** Report / collection date as YYYY-MM-DD when one is printed. */
+  reportDate: string | null;
   results: ParsedResult[];
   summary: { total: number; low: number; high: number; normal: number };
   unparsedLines: number;
@@ -47,8 +49,8 @@ function escapeRegex(s: string) {
 
 /** Alias words may be separated by spaces, hyphens, commas, colons or brackets in real reports. */
 function aliasRegex(alias: string): RegExp {
-  const tokens = alias.split(/[\s\-,:()]+/).filter(Boolean).map(escapeRegex);
-  return new RegExp(`(?<![a-z0-9])${tokens.join('[\\s\\-,:()]*')}(?![a-z0-9])`, 'i');
+  const tokens = alias.split(/[\s\-,:()/]+/).filter(Boolean).map(escapeRegex);
+  return new RegExp(`(?<![a-z0-9])${tokens.join('[\\s\\-,:()/]*')}(?![a-z0-9])`, 'i');
 }
 
 const MATCHERS = TESTS.flatMap((test) => test.aliases.map((alias) => ({ test, re: aliasRegex(alias) })));
@@ -74,6 +76,7 @@ const NOISE = [
   /(?:x|×)\s*10[³⁶⁹²]?/gi,
   /10[³⁶⁹]/g,
   /\b1st\s*h(?:ou)?r\b/gi, // ESR "mm/1st hr"
+  /\/?\s*1\.73\s*m(?:2|²)/gi, // eGFR unit
   /\b(?:24|2)\s*h(?:ou)?rs?\b/gi,
 ];
 
@@ -135,6 +138,29 @@ export function detectPatient(text: string): ParseOutput['patient'] {
     sex: s === 'male' || s === 'm' ? 'male' : s === 'female' || s === 'f' ? 'female' : null,
     age: age && age > 0 && age < 120 ? age : null,
   };
+}
+
+/** Finds the report or sample date ("Reported : 09-10-2026", "Collected on 9 Oct 2026"). */
+export function detectReportDate(text: string): string | null {
+  const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+  const labelled = /(reported|report date|collected|collection|sample date|registered|received|date)\s*(?:on|at|date)?\s*[:\-]?\s*([^\n]{6,30})/gi;
+  for (const m of text.matchAll(labelled)) {
+    const v = m[2];
+    let d = v.match(/(\d{4})-(\d{2})-(\d{2})/); // ISO first, so 2026-01-15 isn't read as day-first
+    if (d) return `${d[1]}-${d[2]}-${d[3]}`;
+    d = v.match(/(?<!\d)(\d{1,2})[/.-](\d{1,2})[/.-](\d{2,4})(?!\d)/);
+    if (d) {
+      const year = d[3].length === 2 ? 2000 + Number(d[3]) : Number(d[3]);
+      const month = Number(d[2]);
+      const day = Number(d[1]);
+      if (month >= 1 && month <= 12 && day >= 1 && day <= 31) return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    }
+    d = v.match(/(\d{1,2})[\s-]*([a-z]{3})[a-z]*[\s,-]*(\d{4})/i);
+    if (d && MONTHS.includes(d[2].toLowerCase())) {
+      return `${d[3]}-${String(MONTHS.indexOf(d[2].toLowerCase()) + 1).padStart(2, '0')}-${String(Number(d[1])).padStart(2, '0')}`;
+    }
+  }
+  return null;
 }
 
 export function parseReport(text: string, sexOverride?: Sex | null): ParseOutput {
@@ -225,6 +251,7 @@ export function parseReport(text: string, sexOverride?: Sex | null): ParseOutput
 
   return {
     patient,
+    reportDate: detectReportDate(text),
     results,
     summary: {
       total: results.length,

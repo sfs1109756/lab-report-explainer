@@ -1,25 +1,52 @@
 import { Fragment, useState } from 'react';
-import type { ParseOutput } from '../types';
+import type { ParsedResult, View } from '../types';
 import { formatRange, RangeBar } from './RangeBar';
 
-export function ResultsTable({ parsed }: { parsed: ParseOutput }) {
-  const [onlyFlagged, setOnlyFlagged] = useState(false);
+const TREND: Record<string, { icon: string; label: string }> = {
+  improved: { icon: '↑', label: 'Improved' },
+  worsened: { icon: '↓', label: 'Worse' },
+  stable: { icon: '→', label: 'Stable' },
+  new: { icon: '•', label: 'New' },
+};
+
+function Change({ r }: { r: ParsedResult }) {
+  if (r.trend === undefined) return null;
+  if (r.previous == null) return <span className="trend new small">new test</span>;
+  if (r.changePct === 0) return <span className="trend stable small">same</span>;
+  const t = TREND[r.trend];
+  return (
+    <span className={`trend ${r.trend}`} title={`${t.label}: was ${r.previous}${r.changePct != null ? ` (${r.changePct > 0 ? '+' : ''}${r.changePct}%)` : ''}`}>
+      <span className="was">{r.previous}</span> {t.icon}
+    </span>
+  );
+}
+
+type Filter = 'all' | 'flagged' | 'changed';
+
+export function ResultsTable({ view }: { view: View }) {
+  const comparing = Boolean(view.comparison);
+  const [filter, setFilter] = useState<Filter>('all');
   const [open, setOpen] = useState<string | null>(null);
 
-  const rows = parsed.results.filter((r) => !onlyFlagged || r.status !== 'normal');
+  const rows = view.results.filter((r) =>
+    filter === 'flagged' ? r.status !== 'normal' : filter === 'changed' ? r.trend === 'improved' || r.trend === 'worsened' : true,
+  );
   const categories = [...new Set(rows.map((r) => r.category))];
 
   return (
     <div className="panel">
       <div className="row" style={{ justifyContent: 'space-between', marginBottom: 6 }}>
         <h2 style={{ margin: 0 }}>Your results</h2>
-        <label className="row small no-print" style={{ gap: 6, cursor: 'pointer' }}>
-          <input type="checkbox" checked={onlyFlagged} onChange={(e) => setOnlyFlagged(e.target.checked)} style={{ width: 'auto' }} />
-          Only show values outside range
-        </label>
+        <div className="seg-filter no-print" role="group" aria-label="Filter results">
+          {(['all', 'flagged', ...(comparing ? ['changed'] : [])] as Filter[]).map((f) => (
+            <button key={f} className={filter === f ? 'active' : ''} onClick={() => setFilter(f)}>
+              {f === 'all' ? 'All' : f === 'flagged' ? 'Out of range' : 'Changed'}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {rows.length === 0 && <p className="muted">Everything is within range. 🎉</p>}
+      {rows.length === 0 && <p className="muted">{filter === 'changed' ? 'Nothing changed meaningfully.' : 'Everything is within range. 🎉'}</p>}
 
       <div className="scroll-x">
         <table className="data results">
@@ -27,7 +54,7 @@ export function ResultsTable({ parsed }: { parsed: ParseOutput }) {
             {categories.map((cat) => (
               <Fragment key={cat}>
                 <tr className="cat-row">
-                  <th colSpan={5}>{cat}</th>
+                  <th colSpan={comparing ? 6 : 5}>{cat}</th>
                 </tr>
                 {rows
                   .filter((r) => r.category === cat)
@@ -41,6 +68,11 @@ export function ResultsTable({ parsed }: { parsed: ParseOutput }) {
                         <td className="value">
                           {r.value} <span className="unit">{r.unit}</span>
                         </td>
+                        {comparing && (
+                          <td className="change">
+                            <Change r={r} />
+                          </td>
+                        )}
                         <td className="bar">
                           <RangeBar r={r} />
                         </td>
@@ -54,7 +86,13 @@ export function ResultsTable({ parsed }: { parsed: ParseOutput }) {
                       </tr>
                       {open === r.key && (
                         <tr className="detail">
-                          <td colSpan={5}>
+                          <td colSpan={comparing ? 6 : 5}>
+                            {r.previous != null && (
+                              <p>
+                                <strong>Since {view.previousDate ?? 'the earlier report'}:</strong> {r.previous} → {r.value} {r.unit}
+                                {r.changePct != null && ` (${r.changePct > 0 ? '+' : ''}${r.changePct}%)`} — {TREND[r.trend ?? 'stable'].label.toLowerCase()}.
+                              </p>
+                            )}
                             {r.about && <p><strong>What it measures:</strong> {r.about}</p>}
                             {r.meaning && <p><strong>What a {r.status} value can mean:</strong> {r.meaning}</p>}
                             <p className="small muted">From your report: “{r.line}”</p>

@@ -47,3 +47,24 @@ Homocysteine 18.5 umol/L 5 - 15`);
   assert.equal(out.results[0].category, 'Other');
   assert.equal(out.results[0].status, 'high');
 });
+
+test('reads lipid ratios, eGFR and Thyrocare-style lines with a method column', () => {
+  const r = byKey(`TC/ HDL CHOLESTEROL RATIO   CALCULATED  5.8  Ratio  3 - 5
+LDL / HDL RATIO   CALCULATED  3.2  Ratio  1.5-3.5
+NON-HDL CHOLESTEROL  CALCULATED  170  mg/dL  < 160
+eGFR  CALCULATED  84  mL/min/1.73m2  > 90
+ESTIMATED AVERAGE GLUCOSE (eAG)  CALCULATED  134  mg/dL  90 - 120`);
+  assert.equal(r.chol_hdl_ratio.status, 'high');
+  assert.equal(r.ldl_hdl_ratio.status, 'normal');
+  assert.equal(r.non_hdl.value, 170);
+  assert.equal(r.egfr.status, 'low');
+  assert.equal(r.eag.value, 134);
+});
+
+test('detects report dates in common formats', async () => {
+  const { detectReportDate } = await import('./parser.js');
+  assert.equal(detectReportDate('Reported : 09-10-2026 02:40 PM'), '2026-10-09');
+  assert.equal(detectReportDate('Sample collected on 3 Mar 2026'), '2026-03-03');
+  assert.equal(detectReportDate('Report Date: 2026-01-15'), '2026-01-15');
+  assert.equal(detectReportDate('No dates here'), null);
+});
