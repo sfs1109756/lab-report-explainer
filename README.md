@@ -6,25 +6,33 @@ Upload a blood test report (PDF or text). See every value flagged **low / normal
 
 ![CI](https://github.com/sfs1109756/lab-report-explainer/actions/workflows/ci.yml/badge.svg)
 
+![Summary of a report compared with an earlier one](docs/screenshot-summary.png)
+
 > ⚠️ Educational tool, not medical advice. Reference ranges vary between labs; always discuss results with a qualified doctor.
 
 ## Features
 
 - **Parser built for real Indian lab layouts:** `Haemoglobin 12.4 L g/dL 13.0 - 17.0`, `Platelet Count 2.45 lakhs/cumm`, `7,850 /cumm`, `1,50,000`, `Desirable <200, Borderline 200-239`, `>40`, `mm/1st hr`, dates/times in headers…
-- **52 common tests** across blood count, sugar, lipids, kidney, electrolytes, liver, thyroid, vitamins and iron — each with a plain explanation of what it measures and what a low/high value can be associated with.
+- **Compare with an earlier report:** see each test's previous value, % change and whether it **improved** or **got worse** — judged against the range, so moving into range counts as better and drifting within it doesn't. Filter to just the tests that changed; the summary leads with what changed.
+- **61 common tests** across blood count, sugar, lipids, kidney, electrolytes, liver, thyroid, vitamins and iron (including lipid ratios, non-HDL, eGFR and estimated average glucose) — each with a plain explanation of what it measures and what a low/high value can be associated with.
 - **Prefers the range printed on your report**; falls back to typical adult ranges (sex-specific where it matters) and labels them as *typical*.
 - **Unit normalisation:** counts in /µL or lakhs are converted so values and ranges compare correctly.
 - **Unknown tests aren't lost:** any line with a name, value and printed range is kept under *Other*.
 - **Visual range bars**, out-of-range filter, click a row for details, print / save as PDF.
 - **AI summary with guardrails:** no diagnoses, no medicines or doses, cautious wording, grouped findings, questions to ask your doctor, and a nudge to see a doctor soon when values are far outside range.
-- **Follow-up questions** about your results, in your chosen language.
+- **Follow-up questions** about your results, in your chosen language. Summaries and answers stream as they're written.
+- **Report date detection** (`09-10-2026`, `3 Mar 2026`, ISO) for labelling comparisons.
+
+![Results with trends since the earlier report](docs/screenshot-trends.png)
+
+<sub>Screenshots use the built-in fictional sample reports.</sub>
 
 ## How it works
 
 ```mermaid
 flowchart LR
   PDF[PDF / pasted text] --> X[Text extraction]
-  X --> P[Rule-based parser<br/>52-test catalogue<br/>range + unit handling]
+  X --> P[Rule-based parser<br/>61-test catalogue<br/>range + unit handling]
   P --> T[Flagged results table]
   P -->|structured results only| L[Local model]
   L --> E[Plain-language summary<br/>+ follow-up Q&A]
@@ -42,7 +50,7 @@ npm run setup
 npm run dev
 ```
 
-Open http://localhost:5174 and click **Try a sample report**.
+Open http://localhost:5174 and click **Try a sample report** or **Sample comparison**.
 
 ### Production
 
@@ -64,9 +72,10 @@ Set `LLM_PROVIDER` in `server/.env`: `ollama` (default), `openai` (any OpenAI-co
 |---|---|---|
 | `POST` | `/api/upload` | `multipart file` (+ `sex`) → `{ text, parsed }` |
 | `POST` | `/api/parse` | `{ text, sex? }` → `{ parsed }` (no AI) |
-| `POST` | `/api/explain` | `{ parsed, language }` → `{ explanation }` |
-| `POST` | `/api/ask` | `{ parsed, question, language }` → `{ answer }` |
-| `GET` | `/api/tests` · `/api/sample` · `/api/languages` | Catalogue, demo report, languages |
+| `POST` | `/api/compare` | `{ current, previous, sex? }` → per-test previous value, change and trend (no AI) |
+| `POST` | `/api/explain` | `{ parsed, language }` → NDJSON stream of the summary |
+| `POST` | `/api/ask` | `{ parsed, question, language }` → NDJSON stream of the answer |
+| `GET` | `/api/tests` · `/api/sample` · `/api/languages` | Catalogue, demo reports, languages |
 
 ## Extending the catalogue
 
